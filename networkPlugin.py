@@ -123,20 +123,20 @@ class NetworkPlugin(Plugin):
             else:
                 logger.warn("[RP] init failed." + str(e))
         
-        try:
-            self.conf = super().load_config()
-            self.condition_2_and_3_cities = None  # 天气查询，存储重复城市信息，Initially set to None
-            if not self.conf:
-                logger.warn("[Apilot] inited but alapi_token not found in config")
-                self.alapi_token = None # Setting a default value for alapi_token
-                self.morning_news_text_enabled = False
-            else:
-                logger.info("[Apilot] inited and alapi_token loaded successfully")
-                self.alapi_token = self.conf["alapi_token"]
-                self.morning_news_text_enabled = self.conf["morning_news_text_enabled"]
-            self.handlers[Event.ON_HANDLE_CONTEXT] = self.on_handle_context
-        except Exception as e:
-            raise self.handle_error(e, "[Apiot] init failed, ignore ")
+        # try:
+        #     self.conf = super().load_config()
+        #     self.condition_2_and_3_cities = None  # 天气查询，存储重复城市信息，Initially set to None
+        #     if not self.conf:
+        #         logger.warn("[Apilot] inited but alapi_token not found in config")
+        #         self.alapi_token = None # Setting a default value for alapi_token
+        #         self.morning_news_text_enabled = False
+        #     else:
+        #         logger.info("[Apilot] inited and alapi_token loaded successfully")
+        #         self.alapi_token = self.conf["alapi_token"]
+        #         self.morning_news_text_enabled = self.conf["morning_news_text_enabled"]
+        #     self.handlers[Event.ON_HANDLE_CONTEXT] = self.on_handle_context
+        # except Exception as e:
+        #     raise self.handle_error(e, "[Apiot] init failed, ignore ")
             
             
     #处理消息

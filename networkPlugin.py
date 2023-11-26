@@ -52,6 +52,7 @@ class NetworkPlugin(Plugin):
     def __init__(self):
         super().__init__()
         self.conf = super().load_config()
+        logger.info(f"NetworkPlugin config: {self.conf}")
         
         #文件路径
         curdir = os.path.dirname(__file__)

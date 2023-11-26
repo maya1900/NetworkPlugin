@@ -52,6 +52,7 @@ class NetworkPlugin(Plugin):
     def __init__(self):
         super().__init__()
         self.conf = super().load_config()
+        logger.debug(f"NetworkPlugin config: {self.conf}")
         
         #文件路径
         curdir = os.path.dirname(__file__)
@@ -93,7 +94,6 @@ class NetworkPlugin(Plugin):
             self.prompt = self.conf["prompt"]
             self.handlers[Event.ON_HANDLE_CONTEXT] = self.on_handle_context
             logger.info("[NetworkPlugin] inited")
-            logger.info(f"NetworkPlugin config: {self.conf}")
 
 
             # with open(config_path, "r", encoding="utf-8") as f:

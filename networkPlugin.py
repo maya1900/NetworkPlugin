@@ -417,6 +417,9 @@ class NetworkPlugin(Plugin):
         logger.debug(f"总结内容体: {result_content}")
         return result_content, function_responseType
 
+    def handle_error(self, error, message):
+        logger.error(f"{message}，错误信息：{error}")
+        return message
     
     #帮助说明
     def get_help_text(self, verbose=False, **kwargs):

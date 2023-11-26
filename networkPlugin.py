@@ -43,6 +43,7 @@ def create_channel_object():
 @plugins.register(
     name="NetworkPlugin", 
     desc="GPT的联网插件", 
+    hidden=False,
     desire_priority=100, 
     version="1.0",
     author="haikerwang", )
@@ -50,43 +51,70 @@ def create_channel_object():
 class NetworkPlugin(Plugin):
     def __init__(self):
         super().__init__()
+        self.conf = super().load_config()
         
         #文件路径
         curdir = os.path.dirname(__file__)
         config_path = os.path.join(curdir, "config.json")
         functions_path = os.path.join(curdir, "lib", "functions.json")
+
+        # 容错
+        if not self.conf:
+            logger.warn("[RP] init failed, config.json not found.")
+            self.alapi_key = None
+            self.morning_news_text_enabled = False
         
         #容错
-        if not os.path.exists(config_path):
-            logger.info('[RP] 配置文件不存在，将使用config.json.template模板')
-            config_path = os.path.join(curdir, "config.json.template")
-            logger.info(f"[NetworkPlugin] config template path: {config_path}")
+        # if not os.path.exists(config_path):
+        #     logger.info('[RP] 配置文件不存在，将使用config.json.template模板')
+        #     config_path = os.path.join(curdir, "config.json.template")
+        #     logger.info(f"[NetworkPlugin] config template path: {config_path}")
         
         #加载配置文件
         try:
             with open(functions_path, 'r', encoding="utf-8") as f:
                 functions = json.load(f)
                 self.functions = functions
-            with open(config_path, "r", encoding="utf-8") as f:
-                config = json.load(f)
-                logger.debug(f"[NetworkPlugin] config content: {config}")
-                openai.api_key = conf().get("open_ai_api_key")
-                openai.api_base = conf().get("open_ai_api_base", "https://api.openai.com/v1")
-                self.alapi_key = config["alapi_key"]
-                self.bing_subscription_key = config["bing_subscription_key"]
-                self.google_api_key = config["google_api_key"]
-                self.google_cx_id = config["google_cx_id"]
-                self.functions_openai_model = config["functions_openai_model"]
-                self.assistant_openai_model = config["assistant_openai_model"]
-                self.app_key = config["app_key"]
-                self.app_sign = config["app_sign"]
-                self.temperature = config.get("temperature", 0.9)
-                self.max_tokens = config.get("max_tokens", 1000)
-                self.google_base_url = config.get("google_base_url", "https://www.googleapis.com/customsearch/v1?")
-                self.comapp = create_channel_object()
-                self.prompt = config["prompt"]
-                self.handlers[Event.ON_HANDLE_CONTEXT] = self.on_handle_context
-                logger.info("[NetworkPlugin] inited")
+            logger.info("[NetworkPlugin] functions loaded successfully")
+            openai.api_key = conf().get("open_ai_api_key")
+            openai.api_base = conf().get("open_ai_api_base", "https://api.openai.com/v1")
+            self.alapi_key = self.conf["alapi_key"]
+            self.bing_subscription_key = self.conf["bing_subscription_key"]
+            self.google_api_key = self.conf["google_api_key"]
+            self.google_cx_id = self.conf["google_cx_id"]
+            self.functions_openai_model = self.conf["functions_openai_model"]
+            self.assistant_openai_model = self.conf["assistant_openai_model"]
+            self.app_key = self.conf["app_key"]
+            self.app_sign = self.conf["app_sign"]
+            self.temperature = self.conf.get("temperature", 0.9)
+            self.max_tokens = self.conf.get("max_tokens", 1000)
+            self.google_base_url = self.conf.get("google_base_url", "https://www.googleapis.com/customsearch/v1?")
+            self.comapp = create_channel_object()
+            self.prompt = self.conf["prompt"]
+            self.handlers[Event.ON_HANDLE_CONTEXT] = self.on_handle_context
+            logger.info("[NetworkPlugin] inited")
+
+
+            # with open(config_path, "r", encoding="utf-8") as f:
+            #     config = json.load(f)
+            #     logger.debug(f"[NetworkPlugin] config content: {config}")
+            #     openai.api_key = conf().get("open_ai_api_key")
+            #     openai.api_base = conf().get("open_ai_api_base", "https://api.openai.com/v1")
+            #     self.alapi_key = config["alapi_key"]
+            #     self.bing_subscription_key = config["bing_subscription_key"]
+            #     self.google_api_key = config["google_api_key"]
+            #     self.google_cx_id = config["google_cx_id"]
+            #     self.functions_openai_model = config["functions_openai_model"]
+            #     self.assistant_openai_model = config["assistant_openai_model"]
+            #     self.app_key = config["app_key"]
+            #     self.app_sign = config["app_sign"]
+            #     self.temperature = config.get("temperature", 0.9)
+            #     self.max_tokens = config.get("max_tokens", 1000)
+            #     self.google_base_url = config.get("google_base_url", "https://www.googleapis.com/customsearch/v1?")
+            #     self.comapp = create_channel_object()
+            #     self.prompt = config["prompt"]
+            #     self.handlers[Event.ON_HANDLE_CONTEXT] = self.on_handle_context
+            #     logger.info("[NetworkPlugin] inited")
         except Exception as e:
             logger.error(f"初始化错误！ 错误信息：{e}")
             #错误信息
@@ -94,6 +122,21 @@ class NetworkPlugin(Plugin):
                 logger.warn(f"[RP] init failed, config.json not found.")
             else:
                 logger.warn("[RP] init failed." + str(e))
+        
+        try:
+            self.conf = super().load_config()
+            self.condition_2_and_3_cities = None  # 天气查询，存储重复城市信息，Initially set to None
+            if not self.conf:
+                logger.warn("[Apilot] inited but alapi_token not found in config")
+                self.alapi_token = None # Setting a default value for alapi_token
+                self.morning_news_text_enabled = False
+            else:
+                logger.info("[Apilot] inited and alapi_token loaded successfully")
+                self.alapi_token = self.conf["alapi_token"]
+                self.morning_news_text_enabled = self.conf["morning_news_text_enabled"]
+            self.handlers[Event.ON_HANDLE_CONTEXT] = self.on_handle_context
+        except Exception as e:
+            raise self.handle_error(e, "[Apiot] init failed, ignore ")
             
             
     #处理消息

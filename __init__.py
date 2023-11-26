@@ -1,1 +1,1 @@
-from .networkPlugin import *
+from .NetworkPlugin import *

@@ -51,19 +51,11 @@ def create_channel_object():
 class NetworkPlugin(Plugin):
     def __init__(self):
         super().__init__()
-        self.conf = super().load_config()
-        logger.debug(f"NetworkPlugin config: {self.conf}")
         
         #文件路径
         curdir = os.path.dirname(__file__)
         config_path = os.path.join(curdir, "config.json")
         functions_path = os.path.join(curdir, "lib", "functions.json")
-
-        # 容错
-        if not self.conf:
-            logger.warn("[RP] init failed, config.json not found.")
-            self.alapi_key = None
-            self.morning_news_text_enabled = False
         
         #容错
         # if not os.path.exists(config_path):
@@ -76,6 +68,12 @@ class NetworkPlugin(Plugin):
             with open(functions_path, 'r', encoding="utf-8") as f:
                 functions = json.load(f)
                 self.functions = functions
+            self.conf = super().load_config()
+            logger.info(f"NetworkPlugin config: {self.conf}")
+            # 容错
+            if not self.conf:
+                logger.warn("[RP] init failed, config.json not found.")
+                return
             logger.info("[NetworkPlugin] functions loaded successfully")
             openai.api_key = conf().get("open_ai_api_key")
             openai.api_base = conf().get("open_ai_api_base", "https://api.openai.com/v1")
